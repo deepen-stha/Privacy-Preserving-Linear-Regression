@@ -10,7 +10,9 @@ double mean(const std::vector<double>& v) {
     for (double value : v) {
         sum += value;
     }
-    return sum / v.size();
+    double calculated_mean = sum / v.size();
+    std::cout << "Calculated mean: " << calculated_mean << std::endl;
+    return calculated_mean;
 }
 
 // Function to calculate variance and covariance
@@ -19,6 +21,7 @@ double covariance(const std::vector<double>& x, const std::vector<double>& y, do
     for (size_t i = 0; i < x.size(); i++) {
         cov += (x[i] - x_mean) * (y[i] - y_mean);
     }
+    std::cout << "Calculated covariance: " << cov << std::endl;
     return cov;
 }
 
@@ -27,11 +30,14 @@ double variance(const std::vector<double>& v, double mean) {
     for (double value : v) {
         var += (value - mean) * (value - mean);
     }
+    std::cout << "Calculated variance: " << var << std::endl;
     return var;
 }
 
 // Function to perform linear regression and return coefficients
 std::pair<double, double> linearRegression(const std::vector<double>& x, const std::vector<double>& y) {
+    std::cout << "Performing linear regression..." << std::endl;
+
     double x_mean = mean(x);
     double y_mean = mean(y);
 
@@ -41,12 +47,17 @@ std::pair<double, double> linearRegression(const std::vector<double>& x, const s
     double beta1 = cov / var;
     double beta0 = y_mean - beta1 * x_mean;
 
+    std::cout << "Slope (beta1): " << beta1 << std::endl;
+    std::cout << "Intercept (beta0): " << beta0 << std::endl;
+
     return {beta0, beta1};
 }
 
 // Function to predict new value
 double predict(double x, std::pair<double, double> coefficients) {
-    return coefficients.first + coefficients.second * x;
+    double predicted_y = coefficients.first + coefficients.second * x;
+    std::cout << "Predicting value: y = " << predicted_y << " for x = " << x << std::endl;
+    return predicted_y;
 }
 
 int main() {

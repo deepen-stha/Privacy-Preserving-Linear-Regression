@@ -34,26 +34,47 @@ struct RegressionSums {
     }
 
     static RegressionSums combine(const RegressionSums& a, const RegressionSums& b) {
+        // std::cout << "Before combining:" << std::endl;
+        // std::cout << "Party A - sum_x: " << a.sum_x << ", sum_y: " << a.sum_y << ", sum_xy: " << a.sum_xy << ", sum_x2: " << a.sum_x2 << ", n: " << a.n << std::endl;
+        // std::cout << "Party B - sum_x: " << b.sum_x << ", sum_y: " << b.sum_y << ", sum_xy: " << b.sum_xy << ", sum_x2: " << b.sum_x2 << ", n: " << b.n << std::endl;
+
         RegressionSums combined;
         combined.sum_x = a.sum_x + b.sum_x;
         combined.sum_y = a.sum_y + b.sum_y;
         combined.sum_xy = a.sum_xy + b.sum_xy;
         combined.sum_x2 = a.sum_x2 + b.sum_x2;
         combined.n = a.n;  // Assuming n is the same from both parties
+
+        // std::cout << "After combining:" << std::endl;
+        // std::cout << "Combined - sum_x: " << combined.sum_x << ", sum_y: " << combined.sum_y << ", sum_xy: " << combined.sum_xy << ", sum_x2: " << combined.sum_x2 << ", n: " << combined.n << std::endl;
+
         return combined;
     }
 
-    std::pair<double, double> computeCoefficients() const {
-        double mean_x = sum_x / (2 * n);  // Adjusting for doubled sums
-        double mean_y = sum_y / (2 * n);  // Adjusting for doubled sums
-        double var_x = (sum_x2 / (2 * n)) - (mean_x * mean_x);
-        double cov_xy = (sum_xy / (2 * n)) - (mean_x * mean_y);
+
+   std::pair<double, double> computeCoefficients() const {
+        double mean_x = sum_x / n;
+        double mean_y = sum_y / n;
+        double var_x = (sum_x2 / n) - (mean_x * mean_x);
+        double cov_xy = (sum_xy / n) - (mean_x * mean_y);
+
+        // std::cout << "Debugging computeCoefficients:" << std::endl;
+        // std::cout << "  sum_x: " << sum_x << ", sum_y: " << sum_y << ", sum_xy: " << sum_xy << ", sum_x2: " << sum_x2 << ", n: " << n << std::endl;
+        // std::cout << "  mean_x: " << mean_x << ", mean_y: " << mean_y << std::endl;
+        // std::cout << "  var_x: " << var_x << ", cov_xy: " << cov_xy << std::endl;
+
+        if (var_x == 0) {
+            std::cerr << "Variance of x is zero, cannot compute slope." << std::endl;
+            return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
+        }
 
         double slope = cov_xy / var_x;
         double intercept = mean_y - slope * mean_x;
-        return {intercept, slope};
-}
 
+        std::cout << "  slope: " << slope << ", intercept: " << intercept << std::endl;
+
+        return {intercept, slope};
+    }
 };
 
 std::vector<int> read_csv(const std::string& filename) {

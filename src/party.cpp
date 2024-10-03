@@ -30,29 +30,13 @@ struct RegressionSums {
     void addShares(double x_share, double y_share) {
         sum_x += x_share;
         sum_y += y_share;
-        sum_xy += x_share * y_share;
+        // TODO: implement du-atallah multiplication for finding sum_xy and sum_x2
+        sum_xy += x_share * y_share; 
         sum_x2 += x_share * x_share;
         n++;
-    }
-
-    std::pair<double, double> computeRegressionCoefficients() const {
-        if (n == 0) {
-            std::cerr << "No data points to process." << std::endl;
-            return {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::quiet_NaN()};
-        }
-        double mean_x = sum_x / n;
-        double mean_y = sum_y / n;
-        double var_x = (sum_x2 / n) - (mean_x * mean_x);
-        if (var_x == 0) {
-            std::cerr << "Variance of x is zero, cannot compute slope." << std::endl;
-            return {mean_y, std::numeric_limits<double>::infinity()};  // Assuming infinite slope if no variance in x
-        }
-        double cov_xy = (sum_xy / n) - (mean_x * mean_y);
-
-        double beta1 = cov_xy / var_x;
-        double beta0 = mean_y - beta1 * mean_x;
-
-        return {beta0, beta1};
+        std::cout << "  Updated sum_xy: " << sum_xy << std::endl;
+        std::cout << "  Updated sum_x2: " << sum_x2 << std::endl;
+        std::cout << "  Updated count n: " << n << std::endl;
     }
 
     std::string serialize() const {
@@ -107,9 +91,6 @@ void handle_client(asio::ip::tcp::socket& socket) {
             }
             if (line == "END") break;
         }
-
-        auto coefficients = sums.computeRegressionCoefficients();
-        std::cout << party_name << ": Regression line: y = " << coefficients.first << " + " << coefficients.second << "x" << std::endl;
 
         std::string message = sums.serialize() + "\n";
         asio::write(socket, asio::buffer(message));
