@@ -44,16 +44,16 @@ struct RegressionSums {
     }
 
     std::pair<double, double> computeCoefficients() const {
-        double mean_x = sum_x / n;
-        double mean_y = sum_y / n;
-        double var_x = (sum_x2 / n) - (mean_x * mean_x);
-        double cov_xy = (sum_xy / n) - (mean_x * mean_y);
+        double mean_x = sum_x / (2 * n);  // Adjusting for doubled sums
+        double mean_y = sum_y / (2 * n);  // Adjusting for doubled sums
+        double var_x = (sum_x2 / (2 * n)) - (mean_x * mean_x);
+        double cov_xy = (sum_xy / (2 * n)) - (mean_x * mean_y);
 
         double slope = cov_xy / var_x;
         double intercept = mean_y - slope * mean_x;
-        std::cout << "mean_x: " << mean_x << ", mean_y: " << mean_y << ", var_x: " << var_x << ", cov_xy: " << cov_xy << std::endl;
         return {intercept, slope};
-    }
+}
+
 };
 
 std::vector<int> read_csv(const std::string& filename) {
@@ -91,17 +91,6 @@ std::vector<int> read_csv(const std::string& filename) {
     }
     return data;
 }
-
-// void secret_share(const std::vector<int>& data, std::vector<int>& share1, std::vector<int>& share2) {
-//     std::mt19937 gen(42);  // Fixed seed for reproducibility during testing
-//     std::uniform_int_distribution<> dist(0, INT_MAX);
-
-//     for (int value : data) {
-//         int share = dist(gen);
-//         share1.push_back(share);
-//         share2.push_back(value - share);
-//     }
-// }
 
 void secret_share(const std::vector<int>& data, std::vector<int>& share1, std::vector<int>& share2) {
     std::mt19937 gen(42); // Consistent seed for debugging
