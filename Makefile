@@ -1,33 +1,38 @@
-# Compiler and compiler flags
-CXX = g++
-CXXFLAGS = -I ./include -I ./include/eigen -std=c++14
+# Compiler
+CXX := g++
 
-# Directories
-SRCDIR = src
-OBJDIR = obj
-BINDIR = bin
+# Compiler flags
+CXXFLAGS := -std=c++17 -march=native -O3 -g -Wno-ignored-attributes
 
-# Source, Object, and Target files
-SRCFILES = $(wildcard $(SRCDIR)/*.cpp)
-OBJFILES = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRCFILES))
-TARGET = $(BINDIR)/main
+# Include directories
+INCLUDES := -I ./include -I ./include/eigen -I ./include/asio/asio/include
 
-# Default target, build the executable
-all: $(TARGET)
+# Libraries
+LIBS := -pthread
 
-# Linking the object files to create the final executable
-$(TARGET): $(OBJFILES)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+# Windows-specific libraries required by ASIO
+WIN_LIBS := -lws2_32
 
-# Compiling each source file into an object file
-$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	mkdir -p $(OBJDIR) $(BINDIR)
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+# Source files excluding party.cpp as it will be compiled with different macros
+SRCS := ./src/client.cpp ./src/linear_regression.cpp
 
-# Clean up the object and binary directories
+# Extract the base names of the source files (without extensions)
+TARGETS := $(SRCS:.cpp=)
+
+# Default target
+all: $(TARGETS) party0 party1
+
+# Compile party0 and party1 from party.cpp with respective defines
+party0: ./src/party.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -DPARTY0 -o $@ $< $(LIBS) $(WIN_LIBS)
+
+party1: ./src/party.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -DPARTY1 -o $@ $< $(LIBS) $(WIN_LIBS)
+
+# Pattern rule to create an executable for each source file
+$(TARGETS): % : %.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $< $(LIBS) $(WIN_LIBS)
+
+# Clean target
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
-
-# Run the compiled executable
-run: $(TARGET)
-	./$(TARGET)
+	rm -f $(TARGETS) party0 party1

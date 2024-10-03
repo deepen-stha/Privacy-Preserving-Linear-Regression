@@ -15,3 +15,4 @@ Used for communication between parties and clients.
 1. install eigen into your system.
 2. compile the code using the Makefile. Use `make` command
 3. run the code using `make run` command in the terminal.
+4. first run the parties then run the client.

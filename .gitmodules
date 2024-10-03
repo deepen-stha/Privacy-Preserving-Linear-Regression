@@ -4,3 +4,6 @@
 [submodule "include/eigen"]
 	path = include/eigen
 	url = https://gitlab.com/libeigen/eigen.git
+[submodule "include/asio"]
+	path = include/asio
+	url = https://github.com/chriskohlhoff/asio.git
