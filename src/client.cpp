@@ -13,6 +13,7 @@
 #include <random>
 #include <asio.hpp>
 #include <tuple>
+#include <limits>
 
 static constexpr uint16_t party0_port = 31337;
 static constexpr uint16_t party1_port = 31338;
@@ -27,7 +28,7 @@ struct RegressionSums {
     static RegressionSums parse(const std::string& response) {
         std::stringstream ss(response);
         RegressionSums sums;
-        char comma; // to consume the commas
+        char comma;
         ss >> sums.sum_x >> comma >> sums.sum_y >> comma >> sums.sum_xy >> comma >> sums.sum_x2 >> comma >> sums.n;
         return sums;
     }
@@ -50,6 +51,7 @@ struct RegressionSums {
 
         double slope = cov_xy / var_x;
         double intercept = mean_y - slope * mean_x;
+        std::cout << "mean_x: " << mean_x << ", mean_y: " << mean_y << ", var_x: " << var_x << ", cov_xy: " << cov_xy << std::endl;
         return {intercept, slope};
     }
 };
@@ -90,15 +92,25 @@ std::vector<int> read_csv(const std::string& filename) {
     return data;
 }
 
+// void secret_share(const std::vector<int>& data, std::vector<int>& share1, std::vector<int>& share2) {
+//     std::mt19937 gen(42);  // Fixed seed for reproducibility during testing
+//     std::uniform_int_distribution<> dist(0, INT_MAX);
+
+//     for (int value : data) {
+//         int share = dist(gen);
+//         share1.push_back(share);
+//         share2.push_back(value - share);
+//     }
+// }
+
 void secret_share(const std::vector<int>& data, std::vector<int>& share1, std::vector<int>& share2) {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dist(0, INT_MAX);
+    std::mt19937 gen(42); // Consistent seed for debugging
+    std::uniform_int_distribution<> dist(1, 1000); // Smaller range to control share size
 
     for (int value : data) {
         int share = dist(gen);
-        share1.push_back(share);
-        share2.push_back(value - share);
+        share1.push_back(value + share); // Adjust to add a share
+        share2.push_back(-share); // Negative of the share to balance the addition in share1
     }
 }
 
@@ -142,7 +154,6 @@ int main() {
         send_termination_signal(socket0);
         send_termination_signal(socket1);
 
-        // Read responses and compute regression coefficients
         RegressionSums sums0, sums1;
         read_response(socket0, sums0);
         read_response(socket1, sums1);
@@ -151,8 +162,7 @@ int main() {
         auto [intercept, slope] = combined.computeCoefficients();
         std::cout << "Regression line: y = " << slope << "x + " << intercept << std::endl;
 
-        // Example prediction
-        double newX = 10;  // Example new x value
+        double newX = 10;
         double predictedY = slope * newX + intercept;
         std::cout << "Predicted y for x = " << newX << ": " << predictedY << std::endl;
 
