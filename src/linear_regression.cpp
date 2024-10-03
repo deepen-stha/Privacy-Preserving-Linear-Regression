@@ -1,5 +1,9 @@
 /*
-Implementation of basic linear regression without privacy preserving
+    @file src/linaer_regression.cpp
+    @brief
+    @details Implementation of basic linear regression without privacy preserving
+    @author Deepen Shrestha <deepens23@iitk.ac.in>
+    @copyright Copyright (c) 2023-2025 Deepen Shrestha and others
 */ 
 #include <iostream>
 #include <vector>
