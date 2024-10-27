@@ -31,7 +31,7 @@ struct RegressionSums {
         sum_x += x_share;
         sum_y += y_share;
         // TODO: implement du-atallah multiplication for finding sum_xy and sum_x2
-        sum_xy += x_share * y_share; 
+        sum_xy += x_share * y_share;
         sum_x2 += x_share * x_share;
         n++;
         std::cout << "  Updated sum_xy: " << sum_xy << std::endl;
