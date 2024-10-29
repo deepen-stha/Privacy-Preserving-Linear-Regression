@@ -6,10 +6,12 @@ CXXFLAGS = -std=c++17 -Wall
 INCLUDES := -I ../include -I ../include/eigen -I ../include/asio/asio/include
 
 # Targets
-TARGETS = client party0 party1
+TARGETS = client client1 party party0 party1
 
 # Source files
 CLIENT_SRC = client.cpp
+CLIENT1_SRC = client1.cpp
+PARTY_SRC = party.cpp
 PARTY0_SRC = party0.cpp
 PARTY1_SRC = party1.cpp
 
@@ -21,7 +23,11 @@ all: $(TARGETS)
 
 client:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(CLIENT_SRC) -o client $(LIBS)
+client1:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(CLIENT1_SRC) -o client1 $(LIBS)
 
+party:
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(PARTY_SRC) -o party $(LIBS)
 party0:
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(PARTY0_SRC) -o party0 $(LIBS)
 

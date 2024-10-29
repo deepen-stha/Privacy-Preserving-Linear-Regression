@@ -122,5 +122,6 @@
         "print": "cpp",
         "strstream": "cpp",
         "*.ipp": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/admin/Desktop/IIT kanpur/Thesis/Privacy Preserving Linear Regression/include/eigen"
 }
