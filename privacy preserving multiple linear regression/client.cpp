@@ -2,11 +2,58 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <asio.hpp>
+#include <fstream>
+#include <sstream>
+#include <vector>
 #include <thread>
 
 using asio::ip::tcp;
 using namespace Eigen;
 using namespace std;
+
+// Function to read data from a CSV file into an Eigen::MatrixXd
+// Function to read data from a CSV file into an Eigen::MatrixXd
+MatrixXd read_csv(const string& filename) {
+    vector<vector<double>> data;
+    ifstream file(filename);
+
+    if (!file.is_open()) {
+        cerr << "Could not open the file " << filename << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    string line;
+    bool is_first_line = true;  // Flag to skip the header line
+
+    while (getline(file, line)) {
+        if (is_first_line) {
+            is_first_line = false;  // Skip the header line
+            continue;
+        }
+
+        stringstream ss(line);
+        string value;
+        vector<double> row;
+
+        while (getline(ss, value, ',')) {
+            row.push_back(stod(value));  // Convert each value to double
+        }
+
+        data.push_back(row);
+    }
+    file.close();
+
+    // Convert the vector of vectors to Eigen::MatrixXd
+    int rows = data.size();
+    int cols = data[0].size();
+    MatrixXd matrix(rows, cols);
+
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            matrix(i, j) = data[i][j];
+
+    return matrix;
+}
 
 void send_data(tcp::socket& socket, const MatrixXd& X, const VectorXd& Y) {
     int rows = X.rows();
@@ -57,13 +104,20 @@ int main() {
         return -1;
     }
 
-    // Generate dummy data for X and Y
-    int n = 10;  // Number of data points
-    int d = 3;   // Number of features
-    MatrixXd X = MatrixXd::Random(n, d);
-    VectorXd Y = VectorXd::Random(n);
+    // Read data from CSV file
+    MatrixXd data = read_csv("../data/Student_Performance.csv");
+    cout << "Client: Data loaded from CSV file." << endl;
 
-    // Split data into two parts
+    // Split data into X (features) and Y (target)
+    int n = data.rows();
+    int d = data.cols() - 1;  // Last column is assumed to be the target
+    MatrixXd X = data.leftCols(d);  // All columns except the last one
+    VectorXd Y = data.col(d);       // Last column as the target
+
+    // cout << "Client: Data matrix X:\n" << X << endl;
+    // cout << "Client: Outcome vector Y:\n" << Y << endl;
+
+    // Split data into two parts for Party0 and Party1
     int mid = n / 2;
     MatrixXd X_a = X.topRows(mid);
     VectorXd Y_a = Y.head(mid);
@@ -89,10 +143,10 @@ int main() {
     VectorXd b;
     receive_coefficients(socket_for_coefficients, b);
 
-    // Example prediction
-    VectorXd new_data_point = VectorXd::Random(d);
+    // Use the first data point in X for prediction
+    VectorXd new_data_point = X.row(5);  // First row of X as the prediction point
     double predicted_value = b.dot(new_data_point);
-    cout << "Client: New data point for prediction: " << new_data_point.transpose() << endl;
+    cout << "Client: Using first data point for prediction: " << new_data_point.transpose() << endl;
     cout << "Client: Predicted value: " << predicted_value << endl;
 
     return 0;

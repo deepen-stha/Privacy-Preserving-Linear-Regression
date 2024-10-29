@@ -13,12 +13,12 @@ void receive_data(tcp::socket& socket, MatrixXd& X, VectorXd& Y) {
     asio::read(socket, asio::buffer(&cols, sizeof(int)));
     X.resize(rows, cols);
     asio::read(socket, asio::buffer(X.data(), rows * cols * sizeof(double)));
-    cout << "Party1: Received matrix X_b of size (" << rows << ", " << cols << "):\n" << X << endl;
+    // cout << "Party1: Received matrix X_b of size (" << rows << ", " << cols << "):\n" << X << endl;
 
     asio::read(socket, asio::buffer(&rows, sizeof(int)));
     Y.resize(rows);
     asio::read(socket, asio::buffer(Y.data(), rows * sizeof(double)));
-    cout << "Party1: Received vector Y_b of size (" << rows << "):\n" << Y << endl;
+    // cout << "Party1: Received vector Y_b of size (" << rows << "):\n" << Y << endl;
 }
 
 void send_coefficients(tcp::socket& socket, const VectorXd& b) {
