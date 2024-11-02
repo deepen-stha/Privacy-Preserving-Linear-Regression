@@ -1,4 +1,4 @@
-# Multiple Linear Regression with privacy
+# Multiple Linear Regression with privacy (Vertically partitioned data)
 This implements the linear regression where the data is `vertically partitioned`. Specifically, it enables two parties (Alice and Bob) to jointly perform regression analysis without revealing their private data to each other.
 ##  RUN:
 1. `make` to compile the code.
