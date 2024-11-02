@@ -1,5 +1,5 @@
 /*
-    @file src/party.cpp
+    @file client.cpp
     @brief
     @details
     @author Deepen Shrestha <deepens23@iitk.ac.in>

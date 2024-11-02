@@ -1,5 +1,5 @@
 /*
-    @file src/party.cpp
+    @file privacy_preserving_multiple_linear_regression.cpp
     @brief
     @details
     @author Deepen Shrestha <deepens23@iitk.ac.in>
