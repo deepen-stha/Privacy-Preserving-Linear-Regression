@@ -1,5 +1,5 @@
 /*
-    @file party0.cpp
+    @file party1.cpp
     @brief
     @details
     @author Deepen Shrestha <deepens23@iitk.ac.in>
@@ -19,7 +19,6 @@ using namespace Eigen;
 using asio::ip::tcp;
 using namespace std;
 
-// Function to read data from a CSV file into an Eigen::MatrixXd
 MatrixXd read_csv(const string& filename) {
     vector<vector<double>> data;
     ifstream file(filename);
@@ -53,7 +52,6 @@ MatrixXd read_csv(const string& filename) {
     return matrix;
 }
 
-// Generate random noise matrix
 MatrixXd generate_noise(int rows, int cols, int seed) {
     std::mt19937 gen(seed);
     std::uniform_int_distribution<> dis(0, 5);
@@ -64,7 +62,6 @@ MatrixXd generate_noise(int rows, int cols, int seed) {
     return noise;
 }
 
-// Send matrix and vector to Party1
 void send_data(tcp::socket& socket, const MatrixXd& matrix, const VectorXd& vector) {
     int rows = matrix.rows();
     int cols = matrix.cols();
@@ -77,7 +74,6 @@ void send_data(tcp::socket& socket, const MatrixXd& matrix, const VectorXd& vect
     asio::write(socket, asio::buffer(vector.data(), rows * sizeof(double)));
 }
 
-// Receive matrix and vector from Party1
 void receive_data(tcp::socket& socket, MatrixXd& matrix, VectorXd& vector) {
     int rows, cols;
     asio::read(socket, asio::buffer(&rows, sizeof(int)));
@@ -92,42 +88,47 @@ void receive_data(tcp::socket& socket, MatrixXd& matrix, VectorXd& vector) {
 
 int main() {
     asio::io_context io_context;
-    MatrixXd data = read_csv("../data/Student_Performance_client1.csv");
+    MatrixXd data = read_csv("../../data/Student_Performance_client2.csv");
     int n = data.rows();
     int d = data.cols() - 1;
-    MatrixXd X_a = data.leftCols(d);
-    VectorXd Y_a = data.col(d);
+    MatrixXd X_b = data.leftCols(d);
+    VectorXd Y_b = data.col(d);
 
-    // Local computation of XaTXa and XaTYa
-    MatrixXd XaTXa = X_a.transpose() * X_a;
-    VectorXd XaTYa = X_a.transpose() * Y_a;
+    // Local computation of XbTXb and XbTYb
+    MatrixXd XbTXb = X_b.transpose() * X_b;
+    VectorXd XbTYb = X_b.transpose() * Y_b;
 
     // Generate random noise matrix
     MatrixXd noise_matrix = generate_noise(d, d, 42);
 
     // Prepare secure scalar product data with noise
-    MatrixXd XaTXb_noisy = X_a.transpose() * X_a + noise_matrix;
+    MatrixXd XbTXa_noisy = X_b.transpose() * X_b + noise_matrix;
 
-    // Send data to Party1 and receive
+    // Listen for Party0
+    tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 5001));
     tcp::socket socket(io_context);
-    socket.connect(tcp::endpoint(asio::ip::address::from_string("127.0.0.1"), 5001));
-    send_data(socket, XaTXa + noise_matrix, XaTYa);
-    MatrixXd received_XTXb;
-    VectorXd received_XTYb;
-    receive_data(socket, received_XTXb, received_XTYb);
+    acceptor.accept(socket);
+
+    // Receive data from Party0
+    MatrixXd received_XTXa;
+    VectorXd received_XTYa;
+    receive_data(socket, received_XTXa, received_XTYa);
+
+    // Send data to Party0
+    send_data(socket, XbTXb + noise_matrix, XbTYb);
 
     // Final combined computation
-    MatrixXd final_XTX = XaTXa + received_XTXb - noise_matrix;
-    VectorXd final_XTY = XaTYa + received_XTYb;
+    MatrixXd final_XTX = XbTXb + received_XTXa - noise_matrix;
+    VectorXd final_XTY = XbTYb + received_XTYa;
 
     // Compute regression coefficients
     VectorXd b = final_XTX.inverse() * final_XTY;
-    cout << "Party0: Final regression coefficients: " << b.transpose() << endl;
+    cout << "Party1: Final regression coefficients: " << b.transpose() << endl;
 
-    // Prediction: Use the first row of X_a as an example
-    VectorXd sample_data = X_a.row(0);  // Select the first row of features
+    // Prediction: Use the first row of X_b as an example
+    VectorXd sample_data = X_b.row(0);  // Select the first row of features
     double predicted_value = b.dot(sample_data);
-    cout << "Party0: Predicted value using first row: " << predicted_value << endl;
+    cout << "Party1: Predicted value using first row: " << predicted_value << endl;
 
     return 0;
 }

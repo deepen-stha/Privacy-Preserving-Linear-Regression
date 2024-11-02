@@ -3,7 +3,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall
 
 # Include paths
-INCLUDES := -I ../include -I ../include/eigen -I ../include/asio/asio/include
+INCLUDES := -I ../../include -I ../../include/eigen -I ../../include/asio/asio/include
 
 # Targets
 TARGETS = party0 party1
