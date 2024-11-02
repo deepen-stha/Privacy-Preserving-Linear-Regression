@@ -77,7 +77,8 @@ VectorXd calculate_regression_coefficients(const MatrixXd& X, const VectorXd& Y)
 }
 
 int main() {
-    string filename = "../data/Student_Performance.csv"; // Replace with the path to your CSV file
+    // our main data file to perform the regression on
+    string filename = "../data/Student_Performance.csv";
     VectorXd Y;
     MatrixXd X = read_csv(filename, Y);
 
