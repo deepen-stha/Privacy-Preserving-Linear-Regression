@@ -1,4 +1,10 @@
-// client.cpp
+/*
+    @file src/party.cpp
+    @brief
+    @details
+    @author Deepen Shrestha <deepens23@iitk.ac.in>
+    @copyright Copyright (c) 2023-2025 Deepen Shrestha and others
+*/
 #include <iostream>
 #include <Eigen/Dense>
 #include <asio.hpp>
