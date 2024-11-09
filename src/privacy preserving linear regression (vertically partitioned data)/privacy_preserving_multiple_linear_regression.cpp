@@ -72,22 +72,30 @@ void read_and_partition_data(const string& filename, MatrixXd& Xa, MatrixXd& Xb,
 
 // Generate random matrix for masking
 MatrixXd generateRandomMatrix(int rows, int cols) {
-    MatrixXd mat(rows, cols);
-    for (int i = 0; i < rows; ++i)
-        for (int j = 0; j < cols; ++j)
-            mat(i, j) = rand() % 10; // Random values between 0 and 9
+    MatrixXd mat = MatrixXd::Random(rows, cols);
     return mat;
 }
 
-// Secure matrix multiplication with masking (Debugging: Masking disabled)
+// Secure matrix multiplication with noise addition for privacy
 MatrixXd secureMatrixMultiply(const MatrixXd& A, const MatrixXd& B) {
-    // For debugging, perform direct multiplication without masking
-    cout << "Performing direct multiplication without masking for debugging." << endl;
-    return A * B;
+    // Generate random noise matrices
+    MatrixXd noiseA = generateRandomMatrix(A.rows(), A.cols());
+    MatrixXd noiseB = generateRandomMatrix(B.rows(), B.cols());
+
+    // Apply noise to the matrices
+    MatrixXd noisyA = A + noiseA;
+    MatrixXd noisyB = B + noiseB;
+
+    // Perform multiplication on noisy data
+    MatrixXd result = noisyA * noisyB;
+
+    // Subtract the effect of noise to approximate the real result
+    // This is a simplification and not secure in real-world applications
+    return result - noiseA * B - A * noiseB + noiseA * noiseB;
 }
 
 // Calculate secure regression coefficients using masked data
-VectorXd secureRegressionCoefficients(const MatrixXd& Xa, const MatrixXd& Xb, const VectorXd& Y) {
+VectorXd secureRegressionCoefficients(const MatrixXd& Xa, const MatrixXd& Xb, VectorXd& Y) {
     // Concatenate Xa and Xb horizontally to form the full feature matrix X
     MatrixXd X(Xa.rows(), Xa.cols() + Xb.cols());
     X.block(0, 0, Xa.rows(), Xa.cols()) = Xa;
@@ -102,7 +110,7 @@ VectorXd secureRegressionCoefficients(const MatrixXd& Xa, const MatrixXd& Xb, co
 }
 
 // Function to calculate regression coefficients directly (without masking)
-VectorXd calculateDirectRegressionCoefficients(const MatrixXd& Xa, const MatrixXd& Xb, const VectorXd& Y) {
+VectorXd calculateDirectRegressionCoefficients(const MatrixXd& Xa, const MatrixXd& Xb, VectorXd& Y) {
     // Concatenate Xa and Xb horizontally to form the full feature matrix X
     MatrixXd X(Xa.rows(), Xa.cols() + Xb.cols());
     X.block(0, 0, Xa.rows(), Xa.cols()) = Xa;
