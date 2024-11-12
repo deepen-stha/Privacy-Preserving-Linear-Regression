@@ -1,9 +1,8 @@
 /*
     @file src/party.cpp
-    @brief
-    @details
-    @author Deepen Shrestha <deepens23@iitk.ac.in>
-    @copyright Copyright (c) 2023-2025 Deepen Shrestha and others
+    @brief Secure two-party linear regression with Du-Atallah multiplication.
+    @details This file represents one of two parties.
+    @authored by Deepen Shrestha <deepens23@iitk.ac.in>
 */
 
 #include <asio.hpp>
@@ -27,16 +26,22 @@ struct RegressionSums {
     double sum_x2 = 0.0;
     size_t n = 0;
 
-    void addShares(double x_share, double y_share) {
+    void addShares(double x_share, double y_share, double u, double v) {
         sum_x += x_share;
         sum_y += y_share;
-        // TODO: implement du-atallah multiplication for finding sum_xy and sum_x2
-        sum_xy += x_share * y_share;
-        sum_x2 += x_share * x_share;
+
+        // Du-Atallah multiplication using synchronized random shares u and v
+        #ifdef PARTY0
+        sum_xy += (x_share + u) * (y_share + v) - x_share * v - y_share * u;
+        sum_x2 += (x_share + u) * (x_share + u) - x_share * u - x_share * u;
+        #else
+        sum_xy += x_share * v + y_share * u;
+        sum_x2 += x_share * u + x_share * u;
+        #endif
+
         n++;
-        std::cout << "  Updated sum_xy: " << sum_xy << std::endl;
-        std::cout << "  Updated sum_x2: " << sum_x2 << std::endl;
-        std::cout << "  Updated count n: " << n << std::endl;
+        std::cout << party_name << ": sum_x=" << sum_x << ", sum_y=" << sum_y
+                  << ", sum_xy=" << sum_xy << ", sum_x2=" << sum_x2 << ", n=" << n << std::endl;
     }
 
     std::string serialize() const {
@@ -54,7 +59,7 @@ void handle_client(asio::ip::tcp::socket& socket) {
         std::string line;
         asio::error_code error;
         bool expect_x = true;
-        double x_share, y_share;
+        double x_share, y_share, u, v;
 
         while (true) {
             size_t len = asio::read_until(socket, buffer, "\n", error);
@@ -74,27 +79,16 @@ void handle_client(asio::ip::tcp::socket& socket) {
                     break;
                 }
 
-                if (!line.empty()) {
-                    std::istringstream iss(line);
-                    if (expect_x) {
-                        if (iss >> x_share) {
-                            expect_x = false;
-                        }
-                    } else {
-                        if (iss >> y_share) {
-                            sums.addShares(x_share, y_share);
-                            std::cout << party_name << ": Added x_share=" << x_share << ", y_share=" << y_share << std::endl;
-                            expect_x = true;
-                        }
-                    }
-                }
+                std::istringstream iss(line);
+                iss >> x_share >> y_share >> u >> v;
+                sums.addShares(x_share, y_share, u, v);
             }
             if (line == "END") break;
         }
 
         std::string message = sums.serialize() + "\n";
         asio::write(socket, asio::buffer(message));
-        std::cout << party_name << ": Computed sums and regression coefficients sent." << std::endl;
+        std::cout << party_name << ": Computed sums sent to client." << std::endl;
     } catch (std::exception& e) {
         std::cerr << party_name << " Exception: " << e.what() << std::endl;
     }
@@ -114,4 +108,3 @@ int main() {
 
     return 0;
 }
-
